@@ -4,6 +4,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
+  // Helper to create initials from a name or email local-part
+  function getInitials(str) {
+    const local = str.split("@")[0].replace(/[\.\-_]/g, " ");
+    const parts = local.split(" ").filter(Boolean);
+    if (parts.length === 0) return local.slice(0, 2).toUpperCase();
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -20,11 +29,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Build participants section (bulleted list with badges)
+        const participantsHtml =
+          details.participants && details.participants.length
+            ? `<div class="participants">
+                 <h5>Participants</h5>
+                 <ul class="participants-list">
+                   ${details.participants
+                     .map(
+                       (p) =>
+                         `<li class="participant-item"><span class="participant-badge">${getInitials(
+                           p
+                         )}</span>${p}</li>`
+                     )
+                     .join("")}
+                 </ul>
+               </div>`
+            : `<div class="participants"><span class="empty">No participants yet</span></div>`;
+
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          ${participantsHtml}
         `;
 
         activitiesList.appendChild(activityCard);
